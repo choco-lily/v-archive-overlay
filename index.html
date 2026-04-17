@@ -37,14 +37,17 @@
         }
 
         #overlay {
-            width: 800px;
-            background: var(--bg);
+            width: 800px; /* Default for Detail */
+            background: rgba(12, 13, 14, 0.85); /* Translucent for OBS */
+            backdrop-filter: blur(16px);
             border-radius: 20px;
             padding: 40px;
             border: 1px solid var(--border);
             box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7);
             position: relative;
+            overflow: hidden; /* Fixes timer bar overflow */
             animation: emerge 1s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: width 0.5s cubic-bezier(0.23, 1, 0.32, 1), padding 0.5s ease;
         }
 
         @keyframes emerge {
@@ -293,14 +296,28 @@
         
         function getParams() {
             const up = new URLSearchParams(location.search);
-            const h = location.hash.substring(1).split('/').filter(Boolean);
-            if (h.length) return { n: decodeURIComponent(h[0]), b: parseInt(h[1]) || 6 };
-            const p = location.pathname.split('/').filter(x => x && !x.endsWith('.html') && !x.includes(':'));
-            if (p.length) return { n: decodeURIComponent(p[0]), b: parseInt(p[1]) || 6 };
-            return { n: up.get('nick') || up.get('nickname'), b: parseInt(up.get('btn') || up.get('button')) || 6 };
+            const hash = location.hash.substring(1).split('/').filter(Boolean);
+            const path = location.pathname.split('/').filter(x => x && !x.endsWith('.html') && !x.includes(':'));
+            
+            let n, b, detail = false;
+
+            if (hash.length) {
+                n = decodeURIComponent(hash[0]);
+                b = parseInt(hash[1]) || 6;
+                detail = hash.includes('detail');
+            } else if (path.length) {
+                n = decodeURIComponent(path[0]);
+                b = parseInt(path[1]) || 6;
+                detail = path.includes('detail');
+            } else {
+                n = up.get('nick') || up.get('nickname');
+                b = parseInt(up.get('btn') || up.get('button')) || 6;
+                detail = up.has('detail');
+            }
+            return { n, b, showDetail: detail };
         }
 
-        const { n: nickname, b: button } = getParams();
+        const { n: nickname, b: button, showDetail } = getParams();
         const INTERVAL = 60;
         const el = {
             overlay: document.getElementById('overlay'),
@@ -373,20 +390,31 @@
             el.cls.innerText = profile.djClass || 'NO CLASS';
             el.pow.innerText = power.toFixed(4);
 
-            const all = await fetchAPI(`/archive/${encodeURIComponent(nickname)}/button/${button}`);
-            el.recent.innerHTML = '';
-            el.best.innerHTML = '';
-
-            if (all && all.records) {
-                const recs = all.records;
-                const recentRecs = [...recs].filter(x => x.updatedAt).sort((a,b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 5);
-                const bestRecs = [...recs].sort((a,b) => b.djpower - a.djpower).slice(0, 5);
-                
-                recentRecs.forEach(r => el.recent.appendChild(createItem(r)));
-                bestRecs.forEach(r => el.best.appendChild(createItem(r)));
+            const headEl = document.querySelector('header');
+            
+            if (!showDetail) {
+                document.querySelector('.main-grid').classList.add('hidden');
+                el.overlay.style.width = '450px'; // Slightly wider for better balance
+                el.overlay.style.padding = '24px 30px';
+                headEl.style.marginBottom = '0';
+                headEl.style.paddingBottom = '0';
+                headEl.style.borderBottom = 'none';
             } else {
-                const empty = "<div style='color:var(--text-muted); font-size:12px; padding:20px; text-align:center'>No record available</div>";
-                el.recent.innerHTML = empty; el.best.innerHTML = empty;
+                const all = await fetchAPI(`/archive/${encodeURIComponent(nickname)}/button/${button}`);
+                el.recent.innerHTML = '';
+                el.best.innerHTML = '';
+
+                if (all && all.records) {
+                    const recs = all.records;
+                    const recentRecs = [...recs].filter(x => x.updatedAt).sort((a,b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 5);
+                    const bestRecs = [...recs].sort((a,b) => b.djpower - a.djpower).slice(0, 5);
+                    
+                    recentRecs.forEach(r => el.recent.appendChild(createItem(r)));
+                    bestRecs.forEach(r => el.best.appendChild(createItem(r)));
+                } else {
+                    const empty = "<div style='color:var(--text-muted); font-size:12px; padding:20px; text-align:center'>No record available</div>";
+                    el.recent.innerHTML = empty; el.best.innerHTML = empty;
+                }
             }
 
             el.loading.classList.add('hidden');
