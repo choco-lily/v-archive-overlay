@@ -147,6 +147,68 @@
             transition: width 1s linear;
         }
 
+        /* Rainbow Flash Effect */
+        @keyframes rainbow-border {
+            0% { border-color: #ff0000; box-shadow: 0 0 30px rgba(255, 0, 0, 0.8); }
+            20% { border-color: #ffff00; box-shadow: 0 0 30px rgba(255, 255, 0, 0.8); }
+            40% { border-color: #00ff00; box-shadow: 0 0 30px rgba(0, 255, 0, 0.8); }
+            60% { border-color: #00ffff; box-shadow: 0 0 30px rgba(0, 255, 255, 0.8); }
+            80% { border-color: #ff00ff; box-shadow: 0 0 30px rgba(255, 0, 255, 0.8); }
+            100% { border-color: #ff0000; box-shadow: 0 0 30px rgba(255, 0, 0, 0.8); }
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1.5) rotate(45deg); }
+        }
+
+        .profile-bar.power-up-active {
+            animation: rainbow-border 0.5s linear infinite;
+            border-width: 3px;
+            background: rgba(255, 255, 255, 0.15) !important;
+        }
+
+        .power-up-active .nickname {
+            background: linear-gradient(to right, #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #dd00f3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow-text 1s linear infinite;
+            background-size: 200% auto;
+        }
+
+        @keyframes rainbow-text {
+            to { background-position: 200% center; }
+        }
+
+        .power-up-badge {
+            position: absolute;
+            left: 50%;
+            top: -25px;
+            transform: translateX(-50%);
+            background: #fff;
+            color: #000;
+            padding: 2px 12px;
+            border-radius: 4px;
+            font-weight: 900;
+            font-size: 14px;
+            box-shadow: 0 0 20px #fff;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .power-up-active .power-up-badge {
+            opacity: 1;
+            top: -15px;
+            animation: bounce 0.5s infinite alternate;
+        }
+
+        @keyframes bounce {
+            from { transform: translateX(-50%) translateY(0); }
+            to { transform: translateX(-50%) translateY(-5px); }
+        }
+
         /* Records Sections */
         .records-grid {
             display: grid;
@@ -257,7 +319,8 @@
     
     <div id="overlay-container" class="hidden">
         <!-- Profile Bar -->
-        <div class="profile-bar">
+        <div class="profile-bar" id="profile-bar">
+            <div class="power-up-badge">POWER UP!</div>
             <div class="nick-group">
                 <div class="nickname" id="nick-display">USER</div>
                 <div class="button-circle" id="btn-display">6B</div>
@@ -290,9 +353,37 @@
 
     <script>
         const API_BASE = 'https://v-archive.net/api/v2';
-        const urlParams = new URLSearchParams(window.location.search);
-        const nickname = urlParams.get('nick') || urlParams.get('nickname');
-        const button = parseInt(urlParams.get('btn') || urlParams.get('button')) || 6;
+        
+        function parseParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // 1. Try Hash (for local files or simple hosting: #Nick/8)
+            const hashParts = window.location.hash.substring(1).split('/').filter(p => p);
+            if (hashParts.length >= 1) {
+                return {
+                    nickname: decodeURIComponent(hashParts[0]),
+                    button: parseInt(hashParts[1]) || 6
+                };
+            }
+
+            // 2. Try Path (for web servers: /Nick/8)
+            // Ignore path parts that look like file names (ending in .html)
+            const pathParts = window.location.pathname.split('/').filter(p => p && !p.endsWith('.html') && !p.includes(':'));
+            if (pathParts.length >= 1) {
+                return {
+                    nickname: decodeURIComponent(pathParts[0]),
+                    button: parseInt(pathParts[1]) || 6
+                };
+            }
+
+            // 3. Fallback to Query Params (?nick=Nick&btn=8)
+            return {
+                nickname: urlParams.get('nick') || urlParams.get('nickname'),
+                button: parseInt(urlParams.get('btn') || urlParams.get('button')) || 6
+            };
+        }
+
+        const { nickname, button } = parseParams();
         const REFRESH_INTERVAL = 60; // seconds
 
         const overlayContainer = document.getElementById('overlay-container');
@@ -300,9 +391,11 @@
         const errorDiv = document.getElementById('error');
         const timerFill = document.getElementById('timer-bar');
         const timerText = document.getElementById('timer-text');
+        const profileBar = document.getElementById('profile-bar');
 
         let countdown = REFRESH_INTERVAL;
         let refreshTimer = null;
+        let previousPower = 0;
 
         async function fetchData(endpoint) {
             try {
@@ -354,30 +447,56 @@
                 return;
             }
 
+            const currentPower = profileData.djPowerConversion || 0;
+            
+            // Trigger effect if power increased
+            if (isRefresh && currentPower > previousPower && previousPower !== 0) {
+                triggerPowerUp();
+            }
+            previousPower = currentPower;
+
             document.getElementById('nick-display').innerText = nickname;
             document.getElementById('btn-display').innerText = button + 'B';
             document.getElementById('class-display').innerText = profileData.djClass || 'UNKNOWN';
-            document.getElementById('power-display').innerText = (profileData.djPowerConversion || 0).toFixed(4);
+            document.getElementById('power-display').innerText = currentPower.toFixed(4);
 
-            // Fetch lists
-            const [recentData, bestData] = await Promise.all([
-                fetchData(`/archive/${encodeURIComponent(nickname)}/button/${button}?sort=updatedAt&order=desc&limit=5`),
-                fetchData(`/archive/${encodeURIComponent(nickname)}/button/${button}?sort=djpower&order=desc&limit=5`)
-            ]);
-
+            // Fetch records
+            // Note: 'updatedAt' is not supported as a sort parameter in the API V2, 
+            // so we fetch all and sort locally for 'Recent Records'.
+            const allRecordsData = await fetchData(`/archive/${encodeURIComponent(nickname)}/button/${button}`);
+            
             const recentList = document.getElementById('recent-list');
-            recentList.innerHTML = '';
-            if (recentData && recentData.records && recentData.records.length > 0) {
-                recentData.records.forEach(r => recentList.appendChild(createRecordItem(r)));
-            } else {
-                recentList.innerHTML = "<div style='color:#666; font-size:12px; padding:10px;'>최근 기록이 없습니다.</div>";
-            }
-
             const bestList = document.getElementById('best-list');
+            recentList.innerHTML = '';
             bestList.innerHTML = '';
-            if (bestData && bestData.records && bestData.records.length > 0) {
-                bestData.records.forEach(r => bestList.appendChild(createRecordItem(r)));
+
+            if (allRecordsData && allRecordsData.records && allRecordsData.records.length > 0) {
+                const records = allRecordsData.records;
+
+                // 1. Recent Records: Sort by updatedAt DESC, take 5
+                const recentRecords = [...records]
+                    .filter(r => r.updatedAt)
+                    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+                    .slice(0, 5);
+                
+                if (recentRecords.length > 0) {
+                    recentRecords.forEach(r => recentList.appendChild(createRecordItem(r)));
+                } else {
+                    recentList.innerHTML = "<div style='color:#666; font-size:12px; padding:10px;'>최근 기록이 없습니다.</div>";
+                }
+
+                // 2. Best Performance: Sort by djpower DESC, take 5
+                const bestRecords = [...records]
+                    .sort((a, b) => b.djpower - a.djpower)
+                    .slice(0, 5);
+                
+                if (bestRecords.length > 0) {
+                    bestRecords.forEach(r => bestList.appendChild(createRecordItem(r)));
+                } else {
+                    bestList.innerHTML = "<div style='color:#666; font-size:12px; padding:10px;'>기록이 없습니다.</div>";
+                }
             } else {
+                recentList.innerHTML = "<div style='color:#666; font-size:12px; padding:10px;'>기록이 없습니다.</div>";
                 bestList.innerHTML = "<div style='color:#666; font-size:12px; padding:10px;'>기록이 없습니다.</div>";
             }
 
@@ -385,6 +504,13 @@
             overlayContainer.classList.remove('hidden');
             
             resetTimer();
+        }
+
+        function triggerPowerUp() {
+            profileBar.classList.add('power-up-active');
+            setTimeout(() => {
+                profileBar.classList.remove('power-up-active');
+            }, 6000); // Effect for 6 seconds
         }
 
         function resetTimer() {
