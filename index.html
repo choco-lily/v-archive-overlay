@@ -79,47 +79,52 @@
         }
 
         .button-type {
-            font-size: 11px;
+            font-size: 14px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.12em;
             color: var(--accent);
             background: rgba(59, 130, 246, 0.1);
-            padding: 4px 10px;
-            border-radius: 6px;
+            padding: 6px 14px;
+            border-radius: 8px;
             width: fit-content;
         }
 
         .nickname {
-            font-size: 40px;
+            font-size: 56px;
             font-weight: 800;
-            letter-spacing: -0.02em;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
         }
 
         .stats {
             text-align: right;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
         }
 
         .stats-label {
-            font-size: 12px;
+            font-size: 14px;
             color: var(--text-muted);
-            font-weight: 500;
+            font-weight: 600;
+            letter-spacing: 0.05em;
         }
 
         .power-val {
-            font-size: 32px;
-            font-weight: 700;
-            letter-spacing: -0.01em;
+            font-size: 42px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
             font-variant-numeric: tabular-nums;
+            color: var(--accent);
+            line-height: 1;
         }
 
         .class-val {
-            font-size: 13px;
-            font-weight: 600;
-            color: #d1d5db;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent-gold);
+            letter-spacing: 0.02em;
         }
 
         .main-grid {
@@ -394,12 +399,13 @@
             
             if (!showDetail) {
                 document.querySelector('.main-grid').classList.add('hidden');
-                el.overlay.style.width = '450px'; // Slightly wider for better balance
-                el.overlay.style.padding = '24px 30px';
+                el.overlay.style.width = '620px'; // Wider for larger text
+                el.overlay.style.padding = '35px 40px';
                 headEl.style.marginBottom = '0';
                 headEl.style.paddingBottom = '0';
                 headEl.style.borderBottom = 'none';
             } else {
+                el.overlay.style.width = '900px'; 
                 const all = await fetchAPI(`/archive/${encodeURIComponent(nickname)}/button/${button}`);
                 el.recent.innerHTML = '';
                 el.best.innerHTML = '';
