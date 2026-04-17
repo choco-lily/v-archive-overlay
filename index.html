@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elite DJMAX Overlay</title>
-    <link rel="stylesheet" as="style" crossorigin
-        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <title>Archive Overlay</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root {
-            --bg-main: rgba(10, 11, 14, 0.95);
-            --card-bg: rgba(255, 255, 255, 0.04);
-            --accent-primary: #00f2ff;
-            --accent-secondary: #bc00ff;
-            --accent-gold: #ffcc00;
-            --text-main: #ffffff;
-            --text-dim: rgba(255, 255, 255, 0.5);
-            --border: rgba(255, 255, 255, 0.1);
+            --bg: #0c0d0e;
+            --card: #16171a;
+            --accent: #3b82f6;
+            --text: #f9fafb;
+            --text-muted: #9ca3af;
+            --border: rgba(255, 255, 255, 0.06);
+            --sc: #facc15;
+            --mx: #f87171;
+            --hd: #4ade80;
+            --nm: #60a5fa;
         }
 
         * {
@@ -28,8 +28,7 @@
 
         body {
             font-family: "Pretendard Variable", "Pretendard", sans-serif;
-            color: var(--text-main);
-            overflow: hidden;
+            color: var(--text);
             background: transparent;
             display: flex;
             justify-content: center;
@@ -37,450 +36,383 @@
             height: 100vh;
         }
 
-        #overlay-container {
-            width: 850px;
-            background: var(--bg-main);
-            border-radius: 28px;
-            padding: 35px;
+        #overlay {
+            width: 800px;
+            background: var(--bg);
+            border-radius: 20px;
+            padding: 40px;
             border: 1px solid var(--border);
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(25px);
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7);
             position: relative;
-            animation: slide-up 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+            animation: emerge 1s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        @keyframes slide-up {
-            from {
-                opacity: 0;
-                transform: translateY(40px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        @keyframes emerge {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Animated Progress Bar */
-        .progress-line {
+        .timer-line {
             position: absolute;
             top: 0;
             left: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            height: 2px;
+            background: var(--accent);
             width: 0%;
             transition: width 1s linear;
-            box-shadow: 0 0 15px var(--accent-primary);
         }
 
-        /* Profile Section */
         header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 35px;
-            padding-bottom: 25px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            align-items: flex-start;
+            margin-bottom: 48px;
         }
 
-        .user-info {
+        .user-meta {
             display: flex;
-            align-items: center;
-            gap: 24px;
+            flex-direction: column;
+            gap: 8px;
         }
 
-        .btn-badge {
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            padding: 8px 18px;
-            border-radius: 12px;
-            font-weight: 900;
-            font-size: 16px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            box-shadow: 0 4px 15px rgba(0, 242, 255, 0.4);
+        .button-type {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            background: rgba(59, 130, 246, 0.1);
+            padding: 4px 10px;
+            border-radius: 6px;
+            width: fit-content;
         }
 
         .nickname {
-            font-size: 48px;
+            font-size: 40px;
             font-weight: 800;
-            letter-spacing: -1.5px;
-            background: linear-gradient(to bottom, #fff, #aaa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
         }
 
-        .stats-block {
+        .stats {
             text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
-        .stats-title {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            color: var(--text-dim);
-            margin-bottom: 6px;
+        .stats-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
         }
 
-        .power-value {
-            font-size: 28px;
-            font-weight: 800;
-            color: var(--accent-primary);
-            font-family: 'Courier New', monospace;
-            text-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
-        }
-
-        .class-name {
-            font-size: 15px;
+        .power-val {
+            font-size: 32px;
             font-weight: 700;
-            color: var(--accent-gold);
-            margin-top: 4px;
+            letter-spacing: -0.01em;
+            font-variant-numeric: tabular-nums;
         }
 
-        /* Main Content Grid */
-        .grid {
+        .class-val {
+            font-size: 13px;
+            font-weight: 600;
+            color: #d1d5db;
+        }
+
+        .main-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 32px;
+            gap: 40px;
         }
 
-        .grid-header {
+        h2 {
             font-size: 13px;
-            font-weight: 700;
-            color: var(--text-dim);
-            letter-spacing: 1.5px;
-            margin-bottom: 18px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             gap: 12px;
         }
 
-        .grid-header::after {
-            content: '';
+        h2::after {
+            content: "";
+            flex: 1;
             height: 1px;
-            flex-grow: 1;
-            background: linear-gradient(90deg, rgba(255, 255, 255, 0.1), transparent);
+            background: var(--border);
         }
 
-        .record-list {
+        .list {
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 12px;
         }
 
-        /* Record Item Styling */
-        .record-item {
-            background: var(--card-bg);
-            padding: 14px 18px;
-            border-radius: 18px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
+        .item {
             display: flex;
             align-items: center;
-            gap: 16px;
-            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-            position: relative;
-        }
-
-        .record-item:hover {
-            background: rgba(255, 255, 255, 0.08);
-            transform: scale(1.02) translateX(10px);
-            border-color: rgba(255, 255, 255, 0.15);
-        }
-
-        .pattern-box {
-            width: 44px;
-            height: 44px;
+            background: var(--card);
+            padding: 16px;
             border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: 900;
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .item:hover {
+            border-color: var(--border);
+            transform: translateX(4px);
+            background: #1c1d21;
+        }
+
+        .pt-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 16px;
             flex-shrink: 0;
+            box-shadow: 0 0 10px currentColor;
         }
 
-        .SC {
-            background: rgba(255, 204, 0, 0.15);
-            color: #ffcc00;
-            border: 1px solid rgba(255, 204, 0, 0.3);
-        }
+        .pt-SC { color: var(--sc); background: var(--sc); }
+        .pt-MX { color: var(--mx); background: var(--mx); }
+        .pt-HD { color: var(--hd); background: var(--hd); }
+        .pt-NM { color: var(--nm); background: var(--nm); }
 
-        .MX {
-            background: rgba(255, 68, 68, 0.15);
-            color: #ff4444;
-            border: 1px solid rgba(255, 68, 68, 0.3);
-        }
-
-        .HD {
-            background: rgba(0, 255, 136, 0.15);
-            color: #00ff88;
-            border: 1px solid rgba(0, 255, 136, 0.3);
-        }
-
-        .NM {
-            background: rgba(0, 153, 255, 0.15);
-            color: #0099ff;
-            border: 1px solid rgba(0, 153, 255, 0.3);
-        }
-
-        .song-info {
-            flex-grow: 1;
+        .song {
+            flex: 1;
             min-width: 0;
         }
 
-        .song-name {
-            font-size: 17px;
-            font-weight: 700;
+        .name {
+            font-size: 15px;
+            font-weight: 600;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             margin-bottom: 2px;
         }
 
-        .song-sub {
-            font-size: 12px;
-            color: var(--text-dim);
-        }
-
-        .record-data {
-            text-align: right;
-            flex-shrink: 0;
-        }
-
-        .score-txt {
-            font-size: 18px;
-            font-weight: 800;
-            color: #fff;
-        }
-
-        .power-txt {
+        .meta {
             font-size: 11px;
-            color: var(--accent-primary);
-            font-family: monospace;
-            opacity: 0.8;
+            color: var(--text-muted);
         }
 
-        /* Power Up Effect */
-        .power-up-mode {
-            border-color: var(--accent-primary) !important;
-            box-shadow: 0 0 60px rgba(0, 242, 255, 0.2);
+        .data {
+            text-align: right;
+            padding-left: 12px;
         }
 
-        .power-up-mode::after {
-            content: 'POWER UP!';
+        .score {
+            font-size: 15px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .pow {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Power Up Effect (Sophisticated) */
+        .power-up-active {
+            border-color: var(--accent) !important;
+        }
+
+        @keyframes pulse-accent {
+            0% { box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7); }
+            50% { box-shadow: 0 40px 120px rgba(59, 130, 246, 0.2); }
+            100% { box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7); }
+        }
+
+        #overlay.notifying {
+            animation: pulse-accent 2s infinite;
+        }
+
+        .power-notif {
             position: absolute;
-            top: 20px;
-            right: 40px;
-            font-size: 12px;
-            font-weight: 900;
-            color: var(--accent-primary);
-            letter-spacing: 2px;
-            animation: blink 0.6s infinite alternate;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: white;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 20px;
+            letter-spacing: 0.1em;
+            opacity: 0;
+            transition: all 0.5s ease;
         }
 
-        @keyframes blink {
-            from {
-                opacity: 0.2;
-                transform: translateY(0);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(-3px);
-            }
+        .notifying .power-notif {
+            opacity: 1;
+            top: -20px;
         }
 
-        .hidden {
-            display: none !important;
-        }
-
-        #loader {
-            text-align: center;
-            margin-top: 45vh;
-            font-size: 14px;
-            letter-spacing: 4px;
-            color: var(--text-dim);
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 0.4;
-            }
-
-            50% {
-                opacity: 1;
-            }
-        }
-
-        #error-ui {
-            padding: 60px;
-            text-align: center;
-            color: #ff4d4d;
-        }
+        .hidden { display: none !important; }
+        #loading { color: var(--text-muted); letter-spacing: 1px; font-size: 13px; }
     </style>
 </head>
-
 <body>
-    <div id="loader">INITIALIZING SENSORS...</div>
-    <div id="error-ui" class="hidden"></div>
-
-    <div id="overlay-container" class="hidden">
-        <div class="progress-line" id="timer-bar"></div>
-
+    <div id="loading">Updating record...</div>
+    <div id="error" class="hidden" style="color:#ef4444; padding:40px; text-align:center"></div>
+    
+    <div id="overlay" class="hidden">
+        <div class="timer-line" id="t-line"></div>
+        <div class="power-notif">PERFORMANCE INCREASED</div>
+        
         <header>
-            <div class="user-info">
-                <div class="btn-badge" id="btn-display">0B</div>
-                <div class="nickname" id="nick-display">GUEST</div>
+            <div class="user-meta">
+                <div class="button-type" id="btn-txt">6 BUTTON</div>
+                <div class="nickname" id="nick-txt">USER</div>
             </div>
-            <div class="stats-block">
-                <div class="stats-title">Performance Rating</div>
-                <div class="power-value" id="power-display">0.0000</div>
-                <div class="class-name" id="class-display">DJ CLASS</div>
+            <div class="stats">
+                <div class="stats-label">DJ POWER</div>
+                <div class="power-val" id="pow-txt">0.0000</div>
+                <div class="class-val" id="cls-txt">CLASS</div>
             </div>
         </header>
 
-        <main class="grid">
-            <section>
-                <div class="grid-header">LATEST TRANSMISSIONS</div>
-                <div class="record-list" id="recent-list"></div>
-            </section>
-            <section>
-                <div class="grid-header">TOP ACHIEVEMENTS</div>
-                <div class="record-list" id="best-list"></div>
-            </section>
-        </main>
+        <section class="main-grid">
+            <article>
+                <h2>Recent Activity</h2>
+                <div class="list" id="recent-list"></div>
+            </article>
+            <article>
+                <h2>Best Performance</h2>
+                <div class="list" id="best-list"></div>
+            </article>
+        </section>
     </div>
 
     <script>
-        const DJ_API = 'https://v-archive.net/api/v2';
-
+        const API = 'https://v-archive.net/api/v2';
+        
         function getParams() {
-            const url = new URLSearchParams(window.location.search);
-            const hash = window.location.hash.substring(1).split('/').filter(x => x);
-            if (hash.length > 0) return { nick: decodeURIComponent(hash[0]), btn: parseInt(hash[1]) || 6 };
-            const path = window.location.pathname.split('/').filter(x => x && !x.endsWith('.html') && !x.includes(':'));
-            if (path.length > 0) return { nick: decodeURIComponent(path[0]), btn: parseInt(path[1]) || 6 };
-            return { nick: url.get('nick') || url.get('nickname'), btn: parseInt(url.get('btn') || url.get('button')) || 6 };
+            const up = new URLSearchParams(location.search);
+            const h = location.hash.substring(1).split('/').filter(Boolean);
+            if (h.length) return { n: decodeURIComponent(h[0]), b: parseInt(h[1]) || 6 };
+            const p = location.pathname.split('/').filter(x => x && !x.endsWith('.html') && !x.includes(':'));
+            if (p.length) return { n: decodeURIComponent(p[0]), b: parseInt(p[1]) || 6 };
+            return { n: up.get('nick') || up.get('nickname'), b: parseInt(up.get('btn') || up.get('button')) || 6 };
         }
 
-        const { nick, btn } = getParams();
-        const REFRESH_RATE = 60;
-        const mainUI = document.getElementById('overlay-container');
-        const loader = document.getElementById('loader');
-        const errorUI = document.getElementById('error-ui');
-        const timerLine = document.getElementById('timer-bar');
+        const { n: nickname, b: button } = getParams();
+        const INTERVAL = 60;
+        const el = {
+            overlay: document.getElementById('overlay'),
+            loading: document.getElementById('loading'),
+            error: document.getElementById('error'),
+            line: document.getElementById('t-line'),
+            nick: document.getElementById('nick-txt'),
+            btn: document.getElementById('btn-txt'),
+            pow: document.getElementById('pow-txt'),
+            cls: document.getElementById('cls-txt'),
+            recent: document.getElementById('recent-list'),
+            best: document.getElementById('best-list')
+        };
 
-        let leftCount = REFRESH_RATE;
-        let ticker = null;
-        let lastPowerValue = 0;
+        let lastPower = 0;
+        let timer = null;
+        let left = INTERVAL;
 
-        async function apiFetch(path) {
+        async function fetchAPI(p) {
             try {
-                const res = await fetch(`${DJ_API}${path}`);
-                if (!res.ok) return null;
-                return await res.json();
+                const r = await fetch(API + p);
+                return r.ok ? await r.json() : null;
             } catch { return null; }
         }
 
-        function buildItem(rec) {
-            const el = document.createElement('div');
-            el.className = 'record-item';
-            el.innerHTML = `
-                <div class="pattern-box ${rec.pattern}">${rec.pattern}</div>
-                <div class="song-info">
-                    <div class="song-name">${rec.name}</div>
-                    <div class="song-sub">Lv.${rec.level} / ${rec.dlcCode}</div>
+        function createItem(r) {
+            const div = document.createElement('div');
+            div.className = 'item';
+            div.innerHTML = `
+                <div class="pt-indicator pt-${r.pattern}"></div>
+                <div class="song">
+                    <div class="name">${r.name}</div>
+                    <div class="meta">${r.pattern} Lv.${r.level} • ${r.dlcCode}</div>
                 </div>
-                <div class="record-data">
-                    <div class="score-txt">${rec.score.toFixed(2)}%</div>
-                    <div class="power-txt">${rec.djpower.toFixed(4)} P</div>
+                <div class="data">
+                    <div class="score">${r.score.toFixed(2)}%</div>
+                    <div class="pow">${r.djpower.toFixed(4)}</div>
                 </div>
             `;
-            return el;
+            return div;
         }
 
-        async function startApp(isReload = false) {
-            if (!nick) {
-                loader.classList.add('hidden');
-                errorUI.classList.remove('hidden');
-                errorUI.innerHTML = "SPECIFY NICKNAME IN URL<br>#Nickname/Button";
+        async function sync(isRefresh = false) {
+            if (!nickname) {
+                el.loading.classList.add('hidden');
+                el.error.classList.remove('hidden');
+                el.error.innerHTML = "Nickname parameter missing.<br>Use #Nickname/Button format.";
                 return;
             }
 
-            if (!isReload) {
-                loader.classList.remove('hidden');
-                mainUI.classList.add('hidden');
-            }
-
-            const profile = await apiFetch(`/archive/${encodeURIComponent(nick)}/djClass/${btn}`);
+            const profile = await fetchAPI(`/archive/${encodeURIComponent(nickname)}/djClass/${button}`);
             if (!profile || !profile.success) {
-                if (!isReload) {
-                    loader.classList.add('hidden');
-                    errorUI.classList.remove('hidden');
-                    errorUI.innerHTML = `USER '${nick}' DATA NOT ACCESSIBLE.`;
+                if (!isRefresh) {
+                    el.loading.classList.add('hidden');
+                    el.error.classList.remove('hidden');
+                    el.error.innerHTML = `Archive not found for '${nickname}' / ${button}B.`;
                 }
                 return;
             }
 
-            const currentPower = profile.djPowerConversion || 0;
-            if (isReload && currentPower > lastPowerValue && lastPowerValue !== 0) {
-                mainUI.classList.add('power-up-mode');
-                setTimeout(() => mainUI.classList.remove('power-up-mode'), 7000);
+            const power = profile.djPowerConversion || 0;
+            if (isRefresh && power > lastPower && lastPower !== 0) {
+                el.overlay.classList.add('notifying');
+                setTimeout(() => el.overlay.classList.remove('notifying'), 10000);
             }
-            lastPowerValue = currentPower;
+            lastPower = power;
 
-            document.getElementById('nick-display').innerText = nick;
-            document.getElementById('btn-display').innerText = btn + 'B';
-            document.getElementById('class-display').innerText = profile.djClass || 'UNKNOWN';
-            document.getElementById('power-display').innerText = currentPower.toFixed(4);
+            el.nick.innerText = nickname;
+            el.btn.innerText = `${button} BUTTON`;
+            el.cls.innerText = profile.djClass || 'NO CLASS';
+            el.pow.innerText = power.toFixed(4);
 
-            const allData = await apiFetch(`/archive/${encodeURIComponent(nick)}/btn/${btn}`); // wait, typo in path in previous versions sometimes? it's /button/{button}
-            // Correcting based on API doc: /api/v2/archive/{nickname}/button/{button}
-            const correctData = await apiFetch(`/archive/${encodeURIComponent(nick)}/button/${btn}`);
+            const all = await fetchAPI(`/archive/${encodeURIComponent(nickname)}/button/${button}`);
+            el.recent.innerHTML = '';
+            el.best.innerHTML = '';
 
-            const rList = document.getElementById('recent-list');
-            const bList = document.getElementById('best-list');
-            rList.innerHTML = '';
-            bList.innerHTML = '';
-
-            if (correctData && correctData.records) {
-                const recs = correctData.records;
-                const recent = [...recs].filter(x => x.updatedAt).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 5);
-                const best = [...recs].sort((a, b) => b.djpower - a.djpower).slice(0, 5);
-
-                recent.forEach(r => rList.appendChild(buildItem(r)));
-                best.forEach(r => bList.appendChild(buildItem(r)));
+            if (all && all.records) {
+                const recs = all.records;
+                const recentRecs = [...recs].filter(x => x.updatedAt).sort((a,b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 5);
+                const bestRecs = [...recs].sort((a,b) => b.djpower - a.djpower).slice(0, 5);
+                
+                recentRecs.forEach(r => el.recent.appendChild(createItem(r)));
+                bestRecs.forEach(r => el.best.appendChild(createItem(r)));
             } else {
-                rList.innerHTML = "<div style='color:rgba(255,255,255,0.15); font-size:12px; padding:20px;'>NO DATA</div>";
-                bList.innerHTML = rList.innerHTML;
+                const empty = "<div style='color:var(--text-muted); font-size:12px; padding:20px; text-align:center'>No record available</div>";
+                el.recent.innerHTML = empty; el.best.innerHTML = empty;
             }
 
-            loader.classList.add('hidden');
-            mainUI.classList.remove('hidden');
-            startTimer();
+            el.loading.classList.add('hidden');
+            el.overlay.classList.remove('hidden');
+            startCountdown();
         }
 
-        function startTimer() {
-            leftCount = REFRESH_RATE;
-            if (ticker) clearInterval(ticker);
+        function startCountdown() {
+            left = INTERVAL;
+            if (timer) clearInterval(timer);
             updateTimerUI();
-            ticker = setInterval(() => {
-                leftCount--;
+            timer = setInterval(() => {
+                left--;
                 updateTimerUI();
-                if (leftCount <= 0) {
-                    clearInterval(ticker);
-                    startApp(true);
+                if (left <= 0) {
+                    clearInterval(timer);
+                    sync(true);
                 }
             }, 1000);
         }
 
         function updateTimerUI() {
-            timerLine.style.width = ((REFRESH_RATE - leftCount) / REFRESH_RATE * 100) + '%';
+            el.line.style.width = ((INTERVAL - left) / INTERVAL * 100) + '%';
         }
 
-        startApp();
+        sync();
     </script>
 </body>
-
 </html>
