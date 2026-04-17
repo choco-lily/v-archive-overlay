@@ -30,14 +30,15 @@
             font-family: "Pretendard Variable", "Pretendard", sans-serif;
             color: var(--text);
             background: transparent;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            margin: 0;
+            padding: 0;
+            /* Center alignment removed for better OBS corner anchoring */
         }
 
         #overlay {
-            width: 800px; /* Default for Detail */
+            display: inline-block; /* Hug contents */
+            width: auto; 
+            min-width: 450px;
             background: rgba(12, 13, 14, 0.85); /* Translucent for OBS */
             backdrop-filter: blur(16px);
             border-radius: 20px;
@@ -46,8 +47,9 @@
             box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7);
             position: relative;
             overflow: hidden; /* Fixes timer bar overflow */
-            animation: emerge 1s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: emerge 0.6s ease-out;
             transition: width 0.5s cubic-bezier(0.23, 1, 0.32, 1), padding 0.5s ease;
+            margin: 10px; /* Small safety margin for shadows */
         }
 
         @keyframes emerge {
@@ -78,23 +80,31 @@
             gap: 8px;
         }
 
-        .button-type {
-            font-size: 14px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            color: var(--accent);
-            background: rgba(59, 130, 246, 0.1);
-            padding: 6px 14px;
-            border-radius: 8px;
-            width: fit-content;
+
+        .nick-row {
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
         }
 
         .nickname {
-            font-size: 56px;
+            font-size: 64px;
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            line-height: 1;
+        }
+
+        .button-badge {
+            font-size: 24px;
             font-weight: 800;
-            letter-spacing: -0.03em;
-            line-height: 1.1;
+            color: var(--accent);
+            background: rgba(59, 130, 246, 0.1);
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            line-height: 1;
+            align-self: flex-end;
+            margin-bottom: 6px;
         }
 
         .stats {
@@ -274,13 +284,17 @@
         
         <header>
             <div class="user-meta">
-                <div class="button-type" id="btn-txt">6 BUTTON</div>
-                <div class="nickname" id="nick-txt">USER</div>
+                <div class="nick-row">
+                    <div class="nickname" id="nick-txt">GUEST</div>
+                    <div class="button-badge" id="btn-txt">0B</div>
+                </div>
             </div>
             <div class="stats">
-                <div class="stats-label">DJ POWER</div>
-                <div class="power-val" id="pow-txt">0.0000</div>
-                <div class="class-val" id="cls-txt">CLASS</div>
+                <div class="stats-label">Performance Rating</div>
+                <div class="pow-txt-group">
+                    <div class="power-val" id="pow-txt">0.0000</div>
+                    <div class="class-val" id="cls-txt">DJ CLASS</div>
+                </div>
             </div>
         </header>
 
@@ -391,7 +405,7 @@
             lastPower = power;
 
             el.nick.innerText = nickname;
-            el.btn.innerText = `${button} BUTTON`;
+            el.btn.innerText = `${button}B`;
             el.cls.innerText = profile.djClass || 'NO CLASS';
             el.pow.innerText = power.toFixed(4);
 
